@@ -8,7 +8,7 @@ export function Providers({ children }: any) {
     <Auth0Provider
       clientId="uEXiWJylfxymCWUwSNl5Z"
       domain="https://auth-wallet-poc.dev.upbond.io"
-      authorizationParams={{ redirect_uri: "http://localhost:3000/", scope: "openid profile" }}>
+      authorizationParams={{ redirect_uri: window.location.origin, scope: "openid profile" }}>
       {children}
     </Auth0Provider>
   );
