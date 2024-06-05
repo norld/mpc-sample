@@ -43,7 +43,7 @@ export default function List() {
           </div>
         </li>
 
-        <li className="flex items-center justify-between gap-x-6 py-5">
+        {/* <li className="flex items-center justify-between gap-x-6 py-5">
           <div className="min-w-0">
             <div className="flex items-start gap-x-3">
               <p className="text-sm font-semibold leading-6 text-gray-900">Send transaction</p>
@@ -57,7 +57,7 @@ export default function List() {
               Execute
             </button>
           </div>
-        </li>
+        </li> */}
       </ul>
       <div className="text-black text-wrap">
         Result: {result}
