@@ -56,6 +56,7 @@ declare class Upbond {
         };
     };
     flowConfig: string;
+    idToken: any;
     private loginHint;
     private useWalletConnect;
     private isCustomLogin;

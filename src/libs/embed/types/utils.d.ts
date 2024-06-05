@@ -48,4 +48,5 @@ export declare const FEATURES_DEFAULT_POPUP_WINDOW = "directories=0,titlebar=0,t
 export declare const FEATURES_CONFIRM_WINDOW = "directories=0,titlebar=0,toolbar=0,status=0,location=0,menubar=0,height=700,width=450";
 export declare function getPopupFeatures(): string;
 export declare const searchToObject: <T>(search: any) => T;
+export declare const parseIdToken: (token: any, pureJwt?: boolean) => any;
 export {};

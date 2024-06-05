@@ -1,4 +1,4 @@
-import Upbond, {  } from "./embed/upbondEmbed.esm";
+import Upbond from "./embed/upbondEmbed.esm";
 // import Upbond from "@upbond/upbond-embed";
 import Web3 from "web3";
 import Web3Token from "web3-token";
@@ -52,10 +52,10 @@ class UpbondEmbed {
     this.upbond = new Upbond({});
     this.web3 = new Web3();
     this.provider = null;
-    this.mpcState = null;
+    this.idToken = null;
   }
 
-  async init({ mpcState }) {
+  async init({ idToken }) {
     if (this.upbond instanceof Upbond) {
       await this.upbond.init({
         buildEnv: "local",
@@ -65,7 +65,7 @@ class UpbondEmbed {
           showAfterLoggedIn: true,
           showBeforeLoggedIn: true
         },
-        state: mpcState
+        state: idToken
       });
       console.log("UPBOND Embed initialized!");
       this.initialized = true;

@@ -1120,6 +1120,21 @@ const searchToObject = search => {
     return result;
   }, {});
 };
+const parseIdToken = function (token) {
+  let pureJwt = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : false;
+  if (pureJwt) {
+    const json = decodeURIComponent(window.atob(token).split("").map(c => {
+      return `%${`00${c.charCodeAt(0).toString(16)}`.slice(-2)}`;
+    }).join(""));
+    return JSON.parse(json);
+  }
+  const base64Url = token.split(".")[1];
+  const base64 = base64Url.replace(/-/g, "+").replace(/_/g, "/");
+  const jsonPayload = decodeURIComponent(window.atob(base64).split("").map(c => {
+    return `%${`00${c.charCodeAt(0).toString(16)}`.slice(-2)}`;
+  }).join(""));
+  return JSON.parse(jsonPayload);
+};
 
 function ownKeys$1(object, enumerableOnly) { var keys = Object.keys(object); if (Object.getOwnPropertySymbols) { var symbols = Object.getOwnPropertySymbols(object); enumerableOnly && (symbols = symbols.filter(function (sym) { return Object.getOwnPropertyDescriptor(object, sym).enumerable; })), keys.push.apply(keys, symbols); } return keys; }
 function _objectSpread$1(target) { for (var i = 1; i < arguments.length; i++) { var source = null != arguments[i] ? arguments[i] : {}; i % 2 ? ownKeys$1(Object(source), !0).forEach(function (key) { _defineProperty(target, key, source[key]); }) : Object.getOwnPropertyDescriptors ? Object.defineProperties(target, Object.getOwnPropertyDescriptors(source)) : ownKeys$1(Object(source)).forEach(function (key) { Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key)); }); } return target; }
@@ -1919,6 +1934,7 @@ class Upbond {
     _defineProperty(this, "consent", void 0);
     _defineProperty(this, "consentConfiguration", void 0);
     _defineProperty(this, "flowConfig", void 0);
+    _defineProperty(this, "idToken", void 0);
     _defineProperty(this, "loginHint", "");
     _defineProperty(this, "useWalletConnect", void 0);
     _defineProperty(this, "isCustomLogin", false);
@@ -1940,6 +1956,7 @@ class Upbond {
       showAfterLoggedIn: true,
       showBeforeLoggedIn: false
     };
+    this.idToken = "";
   }
   async init() {
     let {
@@ -2000,6 +2017,7 @@ class Upbond {
       console.log(`%c [UPBOND-EMBED] WARNING! This buildEnv is deprecating soon. Please use 'UPBOND_BUILD_ENV.LOCAL|DEVELOPMENT|STAGING|PRODUCTION' instead to point wallet on each environment`, "color: #FF0000");
       console.log(`More information, please visit https://github.com/upbond/embed`);
     }
+    if (state) this.idToken = state;
     buildEnv = buildTempEnv;
     log.info(`Using buildEnv: `, buildEnv);
     // Enable/Disable logging
@@ -2902,10 +2920,24 @@ class Upbond {
     if (this.provider.shouldSendMetadata) sendSiteMetadata(this.provider._rpcEngine);
     inpageProvider._initializeState();
     const getCachedData = localStorage.getItem("upbond_login");
-    if (window.location.search || getCachedData) {
+    if (window.location.search || getCachedData || this.idToken) {
       let data;
       if (getCachedData) {
         data = JSON.parse(getCachedData) ? JSON.parse(getCachedData) : null;
+      }
+      if (this.idToken) {
+        console.log("@masuk sini?");
+        const idTokenParsed = parseIdToken(this.idToken);
+        console.log("@idTokenParsed", idTokenParsed);
+        if (idTokenParsed?.wallet_address) {
+          data = {
+            loggedIn: true,
+            rehydrate: true,
+            selectedAddress: idTokenParsed?.wallet_address,
+            verifier: null
+          };
+          localStorage.setItem("upbond_login", JSON.stringify(data));
+        }
       }
       if (window.location.search) {
         const {

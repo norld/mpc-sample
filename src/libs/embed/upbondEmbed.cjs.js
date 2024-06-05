@@ -1237,6 +1237,21 @@ const searchToObject = search => {
     return result;
   }, {});
 };
+const parseIdToken = function (token) {
+  let pureJwt = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : false;
+  if (pureJwt) {
+    const json = decodeURIComponent(window.atob(token).split("").map(c => {
+      return `%${`00${c.charCodeAt(0).toString(16)}`.slice(-2)}`;
+    }).join(""));
+    return JSON.parse(json);
+  }
+  const base64Url = token.split(".")[1];
+  const base64 = base64Url.replace(/-/g, "+").replace(/_/g, "/");
+  const jsonPayload = decodeURIComponent(window.atob(base64).split("").map(c => {
+    return `%${`00${c.charCodeAt(0).toString(16)}`.slice(-2)}`;
+  }).join(""));
+  return JSON.parse(jsonPayload);
+};
 ;// CONCATENATED MODULE: ./src/inpage-provider.ts
 
 function ownKeys(object, enumerableOnly) { var keys = Object.keys(object); if (Object.getOwnPropertySymbols) { var symbols = Object.getOwnPropertySymbols(object); enumerableOnly && (symbols = symbols.filter(function (sym) { return Object.getOwnPropertyDescriptor(object, sym).enumerable; })), keys.push.apply(keys, symbols); } return keys; }
@@ -2137,6 +2152,7 @@ class Upbond {
     defineProperty_default()(this, "consent", void 0);
     defineProperty_default()(this, "consentConfiguration", void 0);
     defineProperty_default()(this, "flowConfig", void 0);
+    defineProperty_default()(this, "idToken", void 0);
     defineProperty_default()(this, "loginHint", "");
     defineProperty_default()(this, "useWalletConnect", void 0);
     defineProperty_default()(this, "isCustomLogin", false);
@@ -2158,6 +2174,7 @@ class Upbond {
       showAfterLoggedIn: true,
       showBeforeLoggedIn: false
     };
+    this.idToken = "";
   }
   async init() {
     let {
@@ -2218,6 +2235,7 @@ class Upbond {
       console.log(`%c [UPBOND-EMBED] WARNING! This buildEnv is deprecating soon. Please use 'UPBOND_BUILD_ENV.LOCAL|DEVELOPMENT|STAGING|PRODUCTION' instead to point wallet on each environment`, "color: #FF0000");
       console.log(`More information, please visit https://github.com/upbond/embed`);
     }
+    if (state) this.idToken = state;
     buildEnv = buildTempEnv;
     loglevel.info(`Using buildEnv: `, buildEnv);
 
@@ -3131,10 +3149,24 @@ class Upbond {
     if (this.provider.shouldSendMetadata) sendSiteMetadata(this.provider._rpcEngine);
     inpageProvider._initializeState();
     const getCachedData = localStorage.getItem("upbond_login");
-    if (window.location.search || getCachedData) {
+    if (window.location.search || getCachedData || this.idToken) {
       let data;
       if (getCachedData) {
         data = JSON.parse(getCachedData) ? JSON.parse(getCachedData) : null;
+      }
+      if (this.idToken) {
+        console.log("@masuk sini?");
+        const idTokenParsed = parseIdToken(this.idToken);
+        console.log("@idTokenParsed", idTokenParsed);
+        if (idTokenParsed?.wallet_address) {
+          data = {
+            loggedIn: true,
+            rehydrate: true,
+            selectedAddress: idTokenParsed?.wallet_address,
+            verifier: null
+          };
+          localStorage.setItem("upbond_login", JSON.stringify(data));
+        }
       }
       if (window.location.search) {
         const {

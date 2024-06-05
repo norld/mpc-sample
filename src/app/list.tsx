@@ -3,25 +3,15 @@ import { useEffect, useState } from "react";
 import upbondServices from "../libs/embed";
 
 export default function List() {
-  const { user, getIdTokenClaims } = useAuth0();
+  const { user, getIdTokenClaims, } = useAuth0();
   const [result, setResult] = useState<string>();
 
+  const init = async () => {
+    const idToken = await getIdTokenClaims();
+    upbondServices.init({ idToken: idToken?.__raw });
+  }
   useEffect(() => {
-    console.log("@user", user)
-
-    if (user) {
-      localStorage.setItem(
-        "upbond_login",
-        JSON.stringify({
-          loggedIn: "true",
-          rehydrate: "false",
-          selectedAddress: user.wallet_address,
-          verifier: "upbond-agg-dev-auth-wallet-poc",
-          state: ""
-        })
-      );
-      upbondServices.init({ mpcState: user.mpc_state });
-    }
+    if (user) init();
   }, [user])
 
 
